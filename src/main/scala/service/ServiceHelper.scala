@@ -1,9 +1,12 @@
 package service
 
-import scala.concurrent.Future
+import com.datastax.driver.core.Session
 
 trait ServiceHelper {
- def fetchData(): Future[Int] ={
-   Future.successful(1)
- }
+
+  val session: Session
+
+  def getResponseData(matchId: String): String = {
+    "{team:{name:'team1', players:[{name:'player1', run:100, wicket:false/true, distance:100}]}}"
+  }
 }
