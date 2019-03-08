@@ -1,30 +1,26 @@
 package service
 
+import akka.actor.ActorSystem
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity}
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.server.Directives._
+import akka.util.Timeout
 import com.datastax.driver.core.Session
+import com.typesafe.config.Config
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+class BetService(session: Session)
+                (implicit timeout: Timeout, system: ActorSystem, config: Config) extends ServiceHelper {
 
-class Service(session: Session) extends ServiceHelper {
-
-  val route = get {
-    path("/") {
-      val response: Future[Int] = fetchData()
-
-      response onComplete {
-        case Success(x) => complete("Got response")
-
-        case Failure(ex) => ex.printStackTrace()
-      }
-    }
+  val route: Route = get {
+    complete(
+      HttpEntity(
+        ContentTypes.`text/plain(UTF-8)`, "message"
+      )
+    )
   }
-
-
 }
 
-object Service {
-  def apply(session: Session): Service = new Service(session).route
+object BetService {
+  def apply(session: Session)(implicit timeout: Timeout, system: ActorSystem,
+                              config: Config): Route = new BetService(session).route
 }

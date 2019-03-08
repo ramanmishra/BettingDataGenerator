@@ -1,5 +1,9 @@
 package service
 
-trait ServiceHelper {
+import scala.concurrent.Future
 
+trait ServiceHelper {
+ def fetchData(): Future[Int] ={
+   Future.successful(1)
+ }
 }
