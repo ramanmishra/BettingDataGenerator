@@ -10,5 +10,5 @@ object boot extends AbstractActor with App {
 
   val service: Route = Service(session)
 
-  Http().bindAndHandle(service, "localhost", 8001)
+  Http().bindAndHandle(service, "192.168.43.100", 8080)
 }

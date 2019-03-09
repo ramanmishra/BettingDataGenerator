@@ -3,17 +3,20 @@ package repo
 import akka.http.scaladsl.server.Route
 import com.datastax.driver.core.{ResultSet, Session}
 import constants.QueryConstants._
-import constants.model.{MatchDetailsModel, PlaceBet, Teams}
+import constants.model.{MatchDetailsModel, MatchIconModel, PlaceBet, Teams}
 
 import scala.util.Random
 
 trait BettingDataRepo extends BettingDataMapper {
 
-
-  def fetchMatchData(session: Session): List[MatchDetailsModel] = {
+  def fetchMatchData(session: Session): (List[MatchIconModel], List[MatchDetailsModel]) = {
     val matchResultSet: ResultSet = session.execute(session.prepare(SELECT_MATCHES).bind)
+    val matchIconResultSet: ResultSet = session.execute(session.prepare(SELECT_MATCH_ICON).bind)
 
-    mapMatchData(matchResultSet)
+    val matchIcons: List[MatchIconModel] = mapMatchIcons(matchIconResultSet)
+    val matchData: List[MatchDetailsModel] = mapMatchData(matchResultSet)
+
+    (matchIcons, matchData)
   }
 
   def fetchTeamDetail(session: Session, matchId: String): Teams = {
