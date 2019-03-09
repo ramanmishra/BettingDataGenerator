@@ -20,7 +20,9 @@ trait BettingDataRepo extends BettingDataMapper {
   }
 
   def fetchTeamDetail(session: Session, matchId: String): Teams = {
-    val stmt =session.prepare(SELECT_MATCH_TEAM).bind("match_id", matchId)
+    val stmt =session.prepare(SELECT_MATCH_TEAM).bind
+
+    stmt.setString("match_id", matchId)
 
     val resultSet = session.execute(stmt)
 

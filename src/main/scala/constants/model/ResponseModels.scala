@@ -43,5 +43,5 @@ trait RequestJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val matchFormat = jsonFormat5(Match)
   implicit val matchDetailsFormat = jsonFormat3(MatchDetails)
   implicit val matchDetailsModelFormat = jsonFormat6(MatchDetailsModel)
-
+  implicit val teamsFormat = jsonFormat1(Teams)
 }

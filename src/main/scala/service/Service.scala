@@ -50,7 +50,7 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
   }
 
   private def processTeamDataRequest(teamDataModel: Teams): StandardRoute = {
-    complete(HttpResponse(status = StatusCodes.OK, entity = gson.toJson(teamDataModel)))
+    complete(HttpResponse(status = StatusCodes.OK, entity = teamDataModel.toJson.compactPrint))
   }
 
 
