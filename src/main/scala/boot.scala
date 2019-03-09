@@ -3,14 +3,12 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import db.DBConfigurations
 import http.AbstractActor
-import service.BetService
+import service.Service
 
 object boot extends AbstractActor with App {
   private val session = new DBConfigurations().getSession
 
-  val routes: Route = BetService(session)
+  val service: Route = Service(session)
 
-  Http().bindAndHandle(routes, "localhost", 8080)
-
-  println("service started in on : http://localhost:8080" )
+  Http().bindAndHandle(service, "192.168.43.61", 8001)
 }
