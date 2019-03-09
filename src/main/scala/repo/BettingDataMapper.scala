@@ -36,11 +36,16 @@ trait BettingDataMapper {
   }
 
   def mapResultSetPlaceBet(resultSet: ResultSet): List[PlaceBetModel] = {
-    resultSet.all.asScala.map { row => {
-      PlaceBetModel(row.getString("match_id"), row.getString("bet_type"), row.getString("team_id")
-        , row.getDouble("amount_placed"))
-    }}.toList
+    resultSet.all.asScala.map { row =>
+      PlaceBetModel(row.getString("match_id"),
+        row.getString("bet_type"),
+        row.getString("team_id"), row.getDouble("amount_placed"))
+    }.toList
   }
 
-
+  def mapMatchIdToMatchName(res: List[PlaceBetModel], matchName: String): List[PlaceBetModel] = {
+    res.map {
+      _.copy(matchId = matchName)
+    }
+  }
 }

@@ -1,14 +1,15 @@
 package service
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import com.datastax.driver.core.Session
-import akka.http.scaladsl.server.{Route, StandardRoute}
-import constants.model._
-import repo.{BettingDataRepo, PreparedStmts, PreparedStmtsInit}
-import util.BettingDataUtils
-import spray.json._
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.{Route, StandardRoute}
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+import com.datastax.driver.core.Session
+import constants.model._
+import repo.{PreparedStmts, PreparedStmtsInit}
+import repo.BettingDataRepo
+import spray.json._
+import util.BettingDataUtils
 
 class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport with PreparedStmtsInit {
   override val ps: PreparedStmts = prepareStatements(session)
@@ -90,10 +91,7 @@ class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUti
     if (response)
       complete(HttpResponse(status = StatusCodes.OK, entity = {
         "Success"
-      })
-      )
-
-    else
+      })) else
       complete(HttpResponse(status = StatusCodes.InternalServerError, entity = {
         "Error"
       }))

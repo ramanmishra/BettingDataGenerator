@@ -1,7 +1,8 @@
 package repo
 
-import com.datastax.driver.core.{BoundStatement, ResultSet, Session}
-import constants.model.{MatchDetailsModel, MatchIconModel, PlaceBet, Teams}
+import com.datastax.driver.core.{ResultSet, Session}
+import constants.QueryConstants._
+import constants.model._
 
 trait BettingDataRepo extends BettingDataMapper {
 
@@ -30,12 +31,9 @@ trait BettingDataRepo extends BettingDataMapper {
 
   def placeBet(placeBet: PlaceBet): Boolean = {
     val stmtBs = ps.insertBet.bind
-
     def uuid = java.util.UUID.randomUUID.toString
 
-
     stmtBs.setString("email", placeBet.email)
-    stmtBs.setString("bet_id", uuid)
     stmtBs.setString("kiosk_id", placeBet.kioskId)
     stmtBs.setString("match_id", placeBet.matchId)
     stmtBs.setString("session_id", placeBet.sessionId)
@@ -47,22 +45,36 @@ trait BettingDataRepo extends BettingDataMapper {
     session.execute(stmtBs).wasApplied
   }
 
-  def fetchPlacedBet(email: String) = {
-    val stmt = ps.selectBet.bind
+
+  def fetchMatchNameByMatchId(res: List[PlaceBetModel]): List[PlaceBetModel] = {
+    val stmt = session.prepare(GET_MATCH_NAME).bind()
+
+    res.map { matchDetail: PlaceBetModel =>
+      val resultSet: ResultSet = session.execute(stmt.setString("match_id", matchDetail.matchId))
+
+      val matchName = resultSet.one().getString("match_name")
+
+      matchDetail.copy(matchId = matchName)
+    }
+  }
+
+  def fetchPlacedBet(session: Session, email: String): List[PlaceBetModel] = {
+    val stmt = session.prepare(SELECT_BET).bind()
 
     stmt.setString("email", email)
 
     val resultSet = session.execute(stmt)
 
-    mapResultSetPlaceBet(resultSet)
+    val res: List[PlaceBetModel] = mapResultSetPlaceBet(resultSet)
+
+    fetchMatchNameByMatchId(res)
   }
 
   def isSessionValid(sessionId: String) = {
-    val stmt: BoundStatement = ps.validateSession.bind
+    val stmt = ps.validateSession.bind
 
     stmt.setString("session_id", sessionId)
 
     !session.execute(stmt).isExhausted
   }
-
 }

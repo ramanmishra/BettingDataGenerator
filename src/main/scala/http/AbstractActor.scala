@@ -1,6 +1,6 @@
 package http
 
-import akka.actor.{Actor, ActorSystem}
+import akka.actor. ActorSystem
 import akka.stream.ActorMaterializer
 import akka.util.Timeout
 import com.typesafe.config.{Config, ConfigFactory}
