@@ -1,7 +1,6 @@
 package repo
 
 import com.datastax.driver.core.{ResultSet, Session}
-import constants.QueryConstants._
 import constants.model._
 
 trait BettingDataRepo extends BettingDataMapper {
@@ -47,7 +46,7 @@ trait BettingDataRepo extends BettingDataMapper {
 
 
   def fetchMatchNameByMatchId(res: List[PlaceBetModel]): List[PlaceBetModel] = {
-    val stmt = session.prepare(GET_MATCH_NAME).bind()
+    val stmt = ps.selectMatchName.bind()
 
     res.map { matchDetail: PlaceBetModel =>
       val resultSet: ResultSet = session.execute(stmt.setString("match_id", matchDetail.matchId))
@@ -59,7 +58,7 @@ trait BettingDataRepo extends BettingDataMapper {
   }
 
   def fetchPlacedBet(email: String): List[PlaceBetModel] = {
-    val stmt = session.prepare(SELECT_BET).bind()
+    val stmt = ps.selectBet.bind()
 
     stmt.setString("email", email)
 

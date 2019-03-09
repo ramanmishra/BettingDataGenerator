@@ -11,8 +11,8 @@ object QueryConstants {
 
   val SELECT_MATCH_TEAM: String = "select teams from makeathon.matches where match_id= :match_id"
 
-  val INSERT_BET: String = "insert into makeathon.bet(session_id, email, kiosk_id, match_id, bet_type, amount_placed, " +
-    "amount_due) VALUES (:session_id, :email, :kiosk_id, :match_id, :bet_type, :amount_placed, :amount_due)"
+  val INSERT_BET: String = "insert into makeathon.bet(session_id, email, kiosk_id, match_id, team_id, bet_type, amount_placed, " +
+    "amount_due) VALUES (:session_id, :email, :kiosk_id, :match_id, :team_id, :bet_type, :amount_placed, :amount_due)"
 
   val SELECT_BET: String = "select * from makeathon.bet where email= :email"
 
