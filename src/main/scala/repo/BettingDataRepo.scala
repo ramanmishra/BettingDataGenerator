@@ -1,17 +1,16 @@
 package repo
 
-import akka.http.scaladsl.server.Route
-import com.datastax.driver.core.{ResultSet, Session}
-import constants.QueryConstants._
+import com.datastax.driver.core.{BoundStatement, ResultSet, Session}
 import constants.model.{MatchDetailsModel, MatchIconModel, PlaceBet, Teams}
-
-import scala.util.Random
 
 trait BettingDataRepo extends BettingDataMapper {
 
-  def fetchMatchData(session: Session): (List[MatchIconModel], List[MatchDetailsModel]) = {
-    val matchResultSet: ResultSet = session.execute(session.prepare(SELECT_MATCHES).bind)
-    val matchIconResultSet: ResultSet = session.execute(session.prepare(SELECT_MATCH_ICON).bind)
+  val session: Session
+  val ps: PreparedStmts
+
+  def fetchMatchData: (List[MatchIconModel], List[MatchDetailsModel]) = {
+    val matchResultSet: ResultSet = session.execute(ps.selectMatches.bind)
+    val matchIconResultSet: ResultSet = session.execute(ps.selectMatchIcon.bind)
 
     val matchIcons: List[MatchIconModel] = mapMatchIcons(matchIconResultSet)
     val matchData: List[MatchDetailsModel] = mapMatchData(matchResultSet)
@@ -19,8 +18,8 @@ trait BettingDataRepo extends BettingDataMapper {
     (matchIcons, matchData)
   }
 
-  def fetchTeamDetail(session: Session, matchId: String): Teams = {
-    val stmt =session.prepare(SELECT_MATCH_TEAM).bind
+  def fetchTeamDetail(matchId: String): Teams = {
+    val stmt = ps.selectMatchTeam.bind
 
     stmt.setString("match_id", matchId)
 
@@ -29,8 +28,9 @@ trait BettingDataRepo extends BettingDataMapper {
     mapTeams(resultSet)
   }
 
-  def placeBet(session:Session, placeBet: PlaceBet): Boolean = {
-    val stmtBs = session.prepare(INSERT_BET).bind()
+  def placeBet(placeBet: PlaceBet): Boolean = {
+    val stmtBs = ps.insertBet.bind
+
     def uuid = java.util.UUID.randomUUID.toString
 
 
@@ -47,14 +47,22 @@ trait BettingDataRepo extends BettingDataMapper {
     session.execute(stmtBs).wasApplied
   }
 
-  def fetchPlacedBet(session:Session, email: String) = {
-    val stmt = session.prepare(SELECT_BET).bind()
+  def fetchPlacedBet(email: String) = {
+    val stmt = ps.selectBet.bind
 
     stmt.setString("email", email)
 
     val resultSet = session.execute(stmt)
 
     mapResultSetPlaceBet(resultSet)
+  }
+
+  def isSessionValid(sessionId: String) = {
+    val stmt: BoundStatement = ps.validateSession.bind
+
+    stmt.setString("session_id", sessionId)
+
+    !session.execute(stmt).isExhausted
   }
 
 }

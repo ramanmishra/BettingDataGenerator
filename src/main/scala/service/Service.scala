@@ -4,48 +4,73 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import com.datastax.driver.core.Session
 import akka.http.scaladsl.server.{Route, StandardRoute}
 import constants.model._
-import repo.BettingDataRepo
-import com.google.gson.Gson
+import repo.{BettingDataRepo, PreparedStmts, PreparedStmtsInit}
 import util.BettingDataUtils
 import spray.json._
 import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
 import akka.http.scaladsl.server.Directives._
 
+class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport with PreparedStmtsInit {
+  override val ps: PreparedStmts = prepareStatements(session)
+  override val session = sessionParam
 
-class Service(session: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport {
-  val gson = new Gson()
-
-
-  val route = cors() {
+  val route: Route = cors() {
     path("getMatches") {
       get {
-        val (matchIconResponse: List[MatchIconModel], matchDetailsResponse: List[MatchDetailsModel]) = fetchMatchData(session)
-        processMasterDataRequest(matchIconResponse, matchDetailsResponse)
+        parameter('sessionId) {
+          sessionId =>
+            if (isSessionValid(sessionId)) {
+              val (matchIconResponse: List[MatchIconModel], matchDetailsResponse: List[MatchDetailsModel]) = fetchMatchData
+              processMasterDataRequest(matchIconResponse, matchDetailsResponse)
+            } else
+              sendSessionTimeout
+        }
       }
     } ~ path("getTeams") {
       get {
-        parameter('matchId) {
-          matchId: String =>
+        parameter('sessionId, 'matchId) {
+          (sessionId: String, matchId: String) =>
 
-            val teamDataModel: Teams = fetchTeamDetail(session, matchId)
-            processTeamDataRequest(teamDataModel)
+            if (isSessionValid(sessionId)) {
+              val teamDataModel: Teams = fetchTeamDetail(matchId)
+              processTeamDataRequest(teamDataModel)
+            } else
+              sendSessionTimeout
         }
       }
     } ~ path("placeBet") {
       post {
         entity(as[PlaceBet]) { placeBetReq: PlaceBet => {
-          val response = placeBet(session, placeBetReq)
-          processPlaceBetResponse(response)
+          if (isSessionValid(placeBetReq.sessionId)) {
+            val response = placeBet(placeBetReq)
+            processPlaceBetResponse(response)
+          } else
+            sendSessionTimeout
         }
         }
       }
-    }~ path("getPlacedBet"){
-      get{parameter('email){email=>
-       val fetchBetResponse = fetchPlacedBet(session, email)
-        complete { HttpResponse(status=StatusCodes.OK, entity="ok") }
-      }
+    } ~ path("getPlacedBet") {
+      get {
+        parameter('sessionId, 'email) {
+          (sessionId: String, email: String) =>
+            if (isSessionValid(sessionId)) {
+              val fetchBetResponse = fetchPlacedBet(email)
+              complete {
+                HttpResponse(status = StatusCodes.OK, entity = "ok")
+              }
+            } else
+              sendSessionTimeout
+        }
       }
     }
+  }
+
+  private def sendSessionTimeout: StandardRoute = complete {
+    HttpResponse(status = StatusCodes.OK,
+      entity = ({
+        "Timeout"
+      })
+    )
   }
 
   private def processMasterDataRequest(matchIconResponse: List[MatchIconModel], matchDetails: List[MatchDetailsModel])
@@ -63,10 +88,15 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
 
   private def processPlaceBetResponse(response: Boolean): StandardRoute = {
     if (response)
-      complete(HttpResponse(status = StatusCodes.OK, entity = gson.toJson("Success")))
+      complete(HttpResponse(status = StatusCodes.OK, entity = {
+        "Success"
+      })
+      )
 
     else
-      complete(HttpResponse(status = StatusCodes.InternalServerError, entity = gson.toJson("Error")))
+      complete(HttpResponse(status = StatusCodes.InternalServerError, entity = {
+        "Error"
+      }))
   }
 }
 
