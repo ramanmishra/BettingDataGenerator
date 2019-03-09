@@ -8,6 +8,7 @@ import constants.model.{MatchDetailsModel, PlaceBet, RequestJsonSupport, Teams}
 import repo.BettingDataRepo
 import com.google.gson.Gson
 import util.BettingDataUtils
+import spray.json._
 
 class Service(session: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport{
   val gson = new Gson()
@@ -37,7 +38,10 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
   }
 
   private def processMasterDataRequest(matchDetails: List[MatchDetailsModel]): StandardRoute = complete {
-    HttpResponse(status = StatusCodes.OK, entity = gson.toJson(processMatchDetails(matchDetails)))
+    HttpResponse( status = StatusCodes.OK,
+//      entity = gson.toJson(processMatchDetails(matchDetails)
+      entity = JsArray(matchDetails.map(x => x.toJson)).compactPrint
+    )
   }
 
   private def processTeamDataRequest(teamDataModel: Teams): StandardRoute = {

@@ -10,15 +10,17 @@ import scala.collection.JavaConverters._
 trait BettingDataMapper {
 
   def mapMatchData(resultSet: ResultSet): List[MatchDetailsModel] = {
-    resultSet.all.asScala.map { row =>
+    val a= resultSet.all.asScala.map { row =>
+      val image= row.getBytes("banner")
       MatchDetailsModel(row.getString("sports_name"),
         row.getString("match_id"),
         row.getString("match_name"),
-        row.getBytes("banner"),
-        row.getLong("start_time"),
-        row.getLong("end_time")
+        new String(image.array(), "UTF-8"),
+        row.getTimestamp("start_time").getTime,
+        row.getTimestamp("end_time").getTime
       )
     }.toList
+    a
   }
 
   def mapTeams(resultSet: ResultSet) = {
