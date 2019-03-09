@@ -15,3 +15,5 @@ libraryDependencies += "com.typesafe.akka" %% "akka-http-testkit" % "10.1.1" % T
 libraryDependencies += "com.typesafe.akka" %% "akka-stream" % "2.5.18"
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.2" % Test
 libraryDependencies += "org.slf4j" % "slf4j-simple" % "1.6.2"
+libraryDependencies += "com.google.code.gson" % "gson" % "2.8.5"
+libraryDependencies += "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.10"
