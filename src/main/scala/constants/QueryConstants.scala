@@ -10,5 +10,7 @@ object QueryConstants {
 
   val INSERT_BET = "insert into makeathon.bet(bet_id, session_id, email, kiosk_id, match_id, bet_type, amount_placed, " +
     "amount_due) VALUES (:bet_id, :session_id, :email, :kiosk_id, :match_id, :bet_type, :amount_placed, :amount_due)"
+
+  val SELECT_BET = "select * from makeathon.bet where email= :email"
 }
 

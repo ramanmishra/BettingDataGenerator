@@ -27,7 +27,6 @@ case class Teams(details: List[String])
 
 case class BetInfo(teamId: String,
                    amount_placed: Double,
-                   rate: Double,
                    betType: String,
                    amount_due: Double)
 
@@ -37,8 +36,10 @@ case class PlaceBet(email: String,
                     matchId: String,
                     bet: BetInfo)
 
+case class PlaceBetModel(matchName: String, betType: String, teamId: String, amountPlaced: Double)
+
 trait RequestJsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
-  implicit val betInfoFormat: RootJsonFormat[BetInfo] = jsonFormat5(BetInfo)
+  implicit val betInfoFormat: RootJsonFormat[BetInfo] = jsonFormat4(BetInfo)
   implicit val placeBetFormat: RootJsonFormat[PlaceBet] = jsonFormat5(PlaceBet)
   implicit val matchFormat = jsonFormat5(Match)
   implicit val matchDetailsFormat = jsonFormat3(MatchDetails)

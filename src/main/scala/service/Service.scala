@@ -15,6 +15,7 @@ import akka.http.scaladsl.server.Directives._
 class Service(session: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport {
   val gson = new Gson()
 
+
   val route = cors() {
     path("getMatches") {
       get {
@@ -37,6 +38,12 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
           processPlaceBetResponse(response)
         }
         }
+      }
+    }~ path("getPlacedBet"){
+      get{parameter('email){email=>
+       val fetchBetResponse = fetchPlacedBet(session, email)
+        complete { HttpResponse(status=StatusCodes.OK, entity="ok") }
+      }
       }
     }
   }

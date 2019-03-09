@@ -3,7 +3,7 @@ package repo
 import java.util
 
 import com.datastax.driver.core.ResultSet
-import constants.model.{MatchDetailsModel, MatchIconModel, Teams}
+import constants.model.{MatchDetailsModel, MatchIconModel, PlaceBetModel, Teams}
 
 import scala.collection.JavaConverters._
 
@@ -31,8 +31,16 @@ trait BettingDataMapper {
     }.toList
   }
 
-  def mapTeams(resultSet: ResultSet) = {
+  def mapTeams(resultSet: ResultSet): Teams = {
     Teams(resultSet.one.getList("teams", classOf[String]).asScala.toList)
   }
+
+  def mapResultSetPlaceBet(resultSet: ResultSet): List[PlaceBetModel] = {
+    resultSet.all.asScala.map { row => {
+      PlaceBetModel(row.getString("match_id"), row.getString("bet_type"), row.getString("team_id")
+        , row.getDouble("amount_placed"))
+    }}.toList
+  }
+
 
 }

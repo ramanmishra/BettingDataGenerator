@@ -34,16 +34,27 @@ trait BettingDataRepo extends BettingDataMapper {
     def uuid = java.util.UUID.randomUUID.toString
 
 
-    stmtBs.setString("bet_id", uuid)
-    stmtBs.setString("session_id", placeBet.sessionId)
     stmtBs.setString("email", placeBet.email)
+    stmtBs.setString("bet_id", uuid)
     stmtBs.setString("kiosk_id", placeBet.kioskId)
     stmtBs.setString("match_id", placeBet.matchId)
+    stmtBs.setString("session_id", placeBet.sessionId)
+    stmtBs.setString("team_id", placeBet.bet.teamId)
     stmtBs.setString("bet_type", placeBet.bet.betType)
     stmtBs.setDouble("amount_placed", placeBet.bet.amount_placed)
     stmtBs.setDouble("amount_due", placeBet.bet.amount_due)
 
     session.execute(stmtBs).wasApplied
+  }
+
+  def fetchPlacedBet(session:Session, email: String) = {
+    val stmt = session.prepare(SELECT_BET).bind()
+
+    stmt.setString("email", email)
+
+    val resultSet = session.execute(stmt)
+
+    mapResultSetPlaceBet(resultSet)
   }
 
 }
