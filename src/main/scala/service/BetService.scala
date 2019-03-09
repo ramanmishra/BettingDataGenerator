@@ -1,20 +1,17 @@
 package service
 
-import java.time.LocalTime
-
 import akka.NotUsed
 import akka.actor.ActorSystem
-import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.model.sse.ServerSentEvent
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.server.Route
+import akka.stream.scaladsl.Source
 import akka.util.Timeout
 import com.datastax.driver.core.Session
 import com.typesafe.config.Config
-import akka.http.scaladsl.model.sse.ServerSentEvent
+import models.AppJsonSupport
 
 import scala.concurrent.duration._
-import akka.stream.scaladsl.Source
-
-import models.{AppJsonSupport, ResponseData}
 
 class BetService(DbSession: Session)
                 (implicit timeout: Timeout, system: ActorSystem, config: Config)

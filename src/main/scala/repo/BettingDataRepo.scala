@@ -1,11 +1,8 @@
 package repo
 
-import akka.http.scaladsl.server.Route
 import com.datastax.driver.core.{ResultSet, Session}
 import constants.QueryConstants._
-import constants.model.{MatchDetailsModel, MatchIconModel, PlaceBet, Teams}
-
-import scala.util.Random
+import constants.model._
 
 trait BettingDataRepo extends BettingDataMapper {
 
@@ -20,7 +17,7 @@ trait BettingDataRepo extends BettingDataMapper {
   }
 
   def fetchTeamDetail(session: Session, matchId: String): Teams = {
-    val stmt =session.prepare(SELECT_MATCH_TEAM).bind
+    val stmt = session.prepare(SELECT_MATCH_TEAM).bind
 
     stmt.setString("match_id", matchId)
 
@@ -29,13 +26,10 @@ trait BettingDataRepo extends BettingDataMapper {
     mapTeams(resultSet)
   }
 
-  def placeBet(session:Session, placeBet: PlaceBet): Boolean = {
+  def placeBet(session: Session, placeBet: PlaceBet): Boolean = {
     val stmtBs = session.prepare(INSERT_BET).bind()
-    def uuid = java.util.UUID.randomUUID.toString
-
 
     stmtBs.setString("email", placeBet.email)
-    stmtBs.setString("bet_id", uuid)
     stmtBs.setString("kiosk_id", placeBet.kioskId)
     stmtBs.setString("match_id", placeBet.matchId)
     stmtBs.setString("session_id", placeBet.sessionId)
@@ -47,14 +41,28 @@ trait BettingDataRepo extends BettingDataMapper {
     session.execute(stmtBs).wasApplied
   }
 
-  def fetchPlacedBet(session:Session, email: String) = {
+
+  def fetchMatchNameByMatchId(session: Session, res: List[PlaceBetModel]): List[PlaceBetModel] = {
+    val stmt = session.prepare(GET_MATCH_NAME).bind()
+
+    res.map { matchDetail: PlaceBetModel =>
+      val resultSet: ResultSet = session.execute(stmt.setString("match_id", matchDetail.matchId))
+
+      val matchName = resultSet.one().getString("match_name")
+
+      matchDetail.copy(matchId = matchName)
+    }
+  }
+
+  def fetchPlacedBet(session: Session, email: String): List[PlaceBetModel] = {
     val stmt = session.prepare(SELECT_BET).bind()
 
     stmt.setString("email", email)
 
     val resultSet = session.execute(stmt)
 
-    mapResultSetPlaceBet(resultSet)
-  }
+    val res: List[PlaceBetModel] = mapResultSetPlaceBet(resultSet)
 
+    fetchMatchNameByMatchId(session, res)
+  }
 }

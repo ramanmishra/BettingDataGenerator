@@ -1,22 +1,19 @@
 package service
 
 import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import com.datastax.driver.core.Session
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{Route, StandardRoute}
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
+import com.datastax.driver.core.Session
 import constants.model._
 import repo.BettingDataRepo
-import com.google.gson.Gson
-import util.BettingDataUtils
 import spray.json._
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives._
-import akka.http.scaladsl.server.Directives._
+import util.BettingDataUtils
 
 
 class Service(session: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport {
-  val gson = new Gson()
 
-
-  val route = cors() {
+  val route: Route = cors() {
     path("getMatches") {
       get {
         val (matchIconResponse: List[MatchIconModel], matchDetailsResponse: List[MatchDetailsModel]) = fetchMatchData(session)
@@ -39,11 +36,14 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
         }
         }
       }
-    }~ path("getPlacedBet"){
-      get{parameter('email){email=>
-       val fetchBetResponse = fetchPlacedBet(session, email)
-        complete { HttpResponse(status=StatusCodes.OK, entity="ok") }
-      }
+    } ~ path("getPlacedBet") {
+      get {
+        parameter('email) { email =>
+          val fetchBetResponse: List[PlaceBetModel] = fetchPlacedBet(session, email)
+          complete {
+            HttpResponse(status = StatusCodes.OK, entity = JsArray(fetchBetResponse.map(x => x.toJson)).compactPrint)
+          }
+        }
       }
     }
   }
@@ -63,10 +63,10 @@ class Service(session: Session) extends BettingDataRepo with BettingDataUtils wi
 
   private def processPlaceBetResponse(response: Boolean): StandardRoute = {
     if (response)
-      complete(HttpResponse(status = StatusCodes.OK, entity = gson.toJson("Success")))
+      complete(HttpResponse(status = StatusCodes.OK, entity = "Success"))
 
     else
-      complete(HttpResponse(status = StatusCodes.InternalServerError, entity = gson.toJson("Error")))
+      complete(HttpResponse(status = StatusCodes.InternalServerError, entity = "Error"))
   }
 }
 
