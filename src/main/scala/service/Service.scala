@@ -12,14 +12,14 @@ import spray.json._
 import util.BettingDataUtils
 
 class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUtils with RequestJsonSupport with PreparedStmtsInit {
-  override val ps: PreparedStmts = prepareStatements(session)
   override val session = sessionParam
+  override val ps: PreparedStmts = prepareStatements(session)
 
   val route: Route = cors() {
     path("getMatches") {
       get {
-        parameter('sessionId) {
-          sessionId =>
+        parameter('sessionId ? "session1") {
+          sessionId: String =>
             if (isSessionValid(sessionId)) {
               val (matchIconResponse: List[MatchIconModel], matchDetailsResponse: List[MatchDetailsModel]) = fetchMatchData
               processMasterDataRequest(matchIconResponse, matchDetailsResponse)
@@ -29,8 +29,8 @@ class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUti
       }
     } ~ path("getTeams") {
       get {
-        parameter('sessionId, 'matchId) {
-          (sessionId: String, matchId: String) =>
+        parameter('matchId, 'sessionId ? "session1") {
+          (matchId: String, sessionId: String) =>
 
             if (isSessionValid(sessionId)) {
               val teamDataModel: Teams = fetchTeamDetail(matchId)
@@ -52,8 +52,8 @@ class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUti
       }
     } ~ path("getPlacedBet") {
       get {
-        parameter('sessionId, 'email) {
-          (sessionId: String, email: String) =>
+        parameter('email, 'sessionId ? "session1") {
+          (email: String, sessionId: String) =>
             if (isSessionValid(sessionId)) {
               val fetchBetResponse = fetchPlacedBet(email)
               complete {
@@ -68,9 +68,9 @@ class Service(sessionParam: Session) extends BettingDataRepo with BettingDataUti
 
   private def sendSessionTimeout: StandardRoute = complete {
     HttpResponse(status = StatusCodes.OK,
-      entity = ({
+      entity = {
         "Timeout"
-      })
+      }
     )
   }
 

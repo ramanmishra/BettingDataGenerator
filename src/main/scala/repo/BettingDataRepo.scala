@@ -58,7 +58,7 @@ trait BettingDataRepo extends BettingDataMapper {
     }
   }
 
-  def fetchPlacedBet(session: Session, email: String): List[PlaceBetModel] = {
+  def fetchPlacedBet(email: String): List[PlaceBetModel] = {
     val stmt = session.prepare(SELECT_BET).bind()
 
     stmt.setString("email", email)
